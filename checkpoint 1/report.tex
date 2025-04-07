@@ -1,0 +1,43 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\title{\textbf{CP1: Setup and Paper Selection}}
+\date{Spring 2025 CS/CE 412/471 Project}
+\author{Team 70 Members: \texttt{Ali Ahsan Rajani, Hamza Raza}}
+
+\begin{document}
+
+\maketitle
+
+\section*{Paper Details}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Title:} \textit{Deterministic Online Bipartite Edge Coloring}
+    \item \textbf{Authors:} Joakim Blikstad, Ola Svensson, Radu Vintan, David Wajc
+    \item \textbf{Conference/Year:} Symposium on Discrete Algorithms (SODA) 2025
+    \item \textbf{Link:} \url{http://arxiv.org/abs/2408.03661v2}
+\end{itemize}
+
+\section*{Summary}
+This paper investigates the online bipartite edge coloring problem with one-sided arrivals. It introduces a deterministic algorithm that achieves a competitive ratio of \( \frac{e}{e - 1} + o(1) \), outperforming the greedy algorithm for graphs with high maximum degree. It combines contention resolution schemes and martingale concentration to break the long-standing belief that randomization is essential to improve on greedy in this setting.
+
+\section*{Justification}
+The paper is a significant theoretical contribution and fits well with our course goals. It overcomes limitations of deterministic online algorithms and introduces a novel way to derandomize an online coloring algorithm. The techniques are insightful and practical for studying online decision-making.
+
+\section{Implementation Feasibility}
+The algorithm is constructive and includes pseudocode. The key steps are:
+\begin{itemize}
+    \item Simulate online arrivals of nodes.
+    \item Implement contention resolution.
+    \item Analyze performance compared to the greedy algorithm.
+\end{itemize}
+All parts are feasible in Python or C++ without requiring external datasets.
+
+\section*{Team Responsibilities}
+\begin{itemize}
+    \item \textbf{Hamza:} Literature review, theory, Greedy and baseline implementation
+    \item \textbf{Ali:} Contention resolution, recursion, Experiments, documentation, and final report
+\end{itemize}
+
+\end{document}
