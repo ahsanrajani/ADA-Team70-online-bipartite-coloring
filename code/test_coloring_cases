@@ -1,0 +1,93 @@
+import networkx as nx
+from deterministic_coloring import full_edge_coloring
+from contextlib import redirect_stdout
+from greedy_coloring import greedy_edge_coloring
+
+# Utility to validate that coloring is a proper edge-coloring
+def is_valid_coloring(G, coloring):
+    node_color_map = {}
+    for (u, v), c in coloring.items():
+        for node in (u, v):
+            if node not in node_color_map:
+                node_color_map[node] = set()
+            if c in node_color_map[node]:
+                print(f"Invalid coloring: Node {node} has two edges with color {c}")
+                return False
+            node_color_map[node].add(c)
+    return True
+
+with open("test_output.txt", "w") as f:
+    with redirect_stdout(f):
+
+        # Test Case 1: Small complete bipartite graph
+        print("\nTest Case 1: K(3, 3)")
+        G1 = nx.complete_bipartite_graph(3, 3)
+        for i in range(3): G1.nodes[i]['bipartite'] = 0
+        for i in range(3, 6): G1.nodes[i]['bipartite'] = 1
+        coloring1 = full_edge_coloring(G1, delta=3)
+        print("Valid Coloring:", is_valid_coloring(G1, coloring1))
+        print("Greedy Coloring:", greedy_edge_coloring(G1))
+
+
+        # Test Case 2: Sparse bipartite graph
+        print("\nTest Case 2: Sparse bipartite graph")
+        G2 = nx.Graph()
+        G2.add_nodes_from(range(5), bipartite=0)
+        G2.add_nodes_from(range(5, 10), bipartite=1)
+        G2.add_edges_from([(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)])
+        coloring2 = full_edge_coloring(G2, delta=1)
+        print("Valid Coloring:", is_valid_coloring(G2, coloring2))
+        print("Greedy Coloring:", greedy_edge_coloring(G2))
+
+
+        # Test Case 3: Path-like bipartite graph
+        print("\nTest Case 3: Path-like bipartite graph")
+        G3 = nx.Graph()
+        for i in range(10):
+            G3.add_node(i, bipartite=i % 2)
+        for i in range(9):
+            G3.add_edge(i, i + 1)
+        coloring3 = full_edge_coloring(G3, delta=2)
+        print("Greedy Coloring:", greedy_edge_coloring(G3))
+
+        print("Valid Coloring:", is_valid_coloring(G3, coloring3))
+
+        # Test Case 4: Star graph
+        print("\nTest Case 4: Star graph (1-to-many)")
+        G4 = nx.Graph()
+        G4.add_node(0, bipartite=0)
+        G4.add_nodes_from(range(1, 11), bipartite=1)
+        G4.add_edges_from([(0, i) for i in range(1, 11)])
+        coloring4 = full_edge_coloring(G4, delta=10)
+        print("Valid Coloring:", is_valid_coloring(G4, coloring4))
+        print("Greedy Coloring:", greedy_edge_coloring(G4))
+
+
+        # Test Case 5: Large complete bipartite graph (K(20, 20))
+        print("\nTest Case 5: Large complete bipartite graph K(20, 20)")
+        G5 = nx.complete_bipartite_graph(20, 20)
+        for i in range(20): G5.nodes[i]['bipartite'] = 0
+        for i in range(20, 40): G5.nodes[i]['bipartite'] = 1
+        coloring5 = full_edge_coloring(G5, delta=20)
+        print("Valid Coloring:", is_valid_coloring(G5, coloring5))
+        print("Greedy Coloring:", greedy_edge_coloring(G5))
+
+        # Test Case 6: Custom bipartite graph with edge probability(set U and V as per the requirement)
+        # This graph is generated randomly, so the output will vary each time.
+        print("\nTest Case 6: Custom bipartite graph with edge probability")
+        num_u = 10  # Number of nodes in set U
+        num_v = 10  # Number of nodes in set V
+        edge_prob = 0.8  # Probability of edge creation
+
+        G6 = nx.bipartite.random_graph(num_u, num_v, edge_prob)
+        for i in range(num_u):
+            G6.nodes[i]['bipartite'] = 0
+        for i in range(num_u, num_u + num_v):
+            G6.nodes[i]['bipartite'] = 1
+
+        delta6 = max(dict(G6.degree()).values())  # Use max degree as Δ
+        coloring6 = full_edge_coloring(G6, delta=delta6)
+        print("Valid Coloring:", is_valid_coloring(G6, coloring6))
+        print("Greedy Coloring:", greedy_edge_coloring(G6))
+
+
