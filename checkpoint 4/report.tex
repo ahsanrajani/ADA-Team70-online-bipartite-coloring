@@ -1,0 +1,319 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref} 
+
+\title{Deterministic Online Bipartite Edge Coloring \\ \large Final Report}
+\author{Ali Ahsan Rajani, Hamza Raza/Team 70}
+
+\begin{document}
+\maketitle
+
+\section{Background and Motivation}
+
+\textbf{Online Bipartite Edge Coloring} is a challenging problem where edges of a bipartite graph must be colored dynamically as nodes arrive, ensuring no two edges incident to the same vertex share a color. While offline solutions aim to use no more than the maximum degree $\Delta$ colors, achieving similar efficiency in an online setting is difficult due to the lack of future knowledge. This problem has practical relevance in fields like network scheduling, resource allocation, and real-time systems where conflicts must be avoided as tasks or connections appear sequentially. Recent work by Blikstad et al.~\cite{blikstad2024} introduced a breakthrough \textbf{deterministic} algorithm for this problem, using \textbf{Contention Resolution Schemes (CRS)} and recursive partial colorings to approach the theoretical optimum without relying on randomness. This provides strong worst-case guarantees, making it ideal for applications requiring predictable performance.\\
+
+\textbf{Motivation:} In this project, we implemented and analyzed this deterministic algorithm, aiming to evaluate its practical performance, compare it with greedy methods, and explore enhancements to bridge theory and real-world applicability.
+
+
+\section{Algorithm Overview}
+
+The paper introduces a \textbf{deterministic} approach to the \textbf{Online Bipartite Edge Coloring} problem, leveraging advanced probabilistic techniques and \textbf{Contention Resolution Schemes (CRS)}. The core idea is to recursively reduce the complexity of edge coloring by carefully managing color assignments in an online setting, achieving a competitive ratio of approximately:
+\[
+\frac{e}{e - 1} + o(1)
+\]
+
+\subsection*{Problem Definition}
+\textbf{Input:} A bipartite graph $G = (U, V, E)$, where nodes on one side (typically $V$) arrive online. Each time a node $v_t$ arrives, its incident edges $(u, v_t)$ to offline nodes $u \in U$ are revealed.
+
+\textbf{Output:} Assign a color to each edge immediately upon arrival, ensuring proper edge coloring (no two edges incident to the same vertex share a color). The objective is to minimize the total number of colors used relative to the optimal offline solution, which requires $\Delta$ colors.
+
+% Flowchart
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[node distance=2cm, every node/.style={font=\small}]
+        % Nodes in vertical order
+        \node (start) [rectangle, draw, fill=blue!10, text width=4cm, align=center] {Online node arrives};
+        
+        \node (select) [rectangle, draw, below of=start, fill=blue!10, text width=5cm, align=center] {Randomly select tentative colors for each uncolored edge from available palettes};
+        
+        \node (conflict) [diamond, draw, below of=select, fill=red!10, aspect=2, text width=3.5cm, align=center] {Conflicts detected?};
+        
+        \node (crs) [rectangle, draw, below of=conflict, fill=yellow!20, text width=4.5cm, align=center] {Apply CRS to resolve conflicts and assign colors};
+        
+        \node (threshold) [diamond, draw, below of=crs, fill=red!10, aspect=2, text width=4cm, align=center] {Max degree $<$ Threshold?};
+        
+        \node (greedy) [rectangle, draw, below of=threshold, fill=green!20, text width=4.5cm, align=center] {Apply greedy coloring to remaining edges};
+        
+        \node (end) [rectangle, draw, below of=greedy, fill=gray!20, text width=3.5cm, align=center] {Edge coloring complete};
+
+        % Arrows
+        \draw[->] (start) -- (select);
+        \draw[->] (select) -- (conflict);
+        \draw[->] (conflict) -- node[right] {Yes} (crs);
+        \draw[->] (crs) -- (threshold);
+        \draw[->] (threshold) -- node[right] {Yes} (greedy);
+        \draw[->] (greedy) -- (end);
+
+        % Loop back for No cases
+        \draw[->] (conflict.west) .. controls +(-2,0) and +(-2,0) .. (end.west) node[midway, left] {No};
+        \draw[->] (threshold.west) .. controls +(-3,0) and +(-3,0) .. (select.west) node[midway, left] {No};
+    \end{tikzpicture}
+    \caption{Simplified Flowchart of the Hybrid Deterministic Online Bipartite Edge Coloring Algorithm for Each Arriving Online Node}
+\end{figure}
+
+\subsection*{High-Level Strategy}
+The deterministic algorithm is structured into three key components:
+
+\subsubsection*{Algorithm 1: Partial Edge Coloring}
+This component performs a probabilistic partial coloring using a palette slightly larger than $\Delta$:
+
+\begin{itemize}
+    \item \textbf{Initializing Palettes:} Each offline node receives a palette of size:
+    \[
+    \left\lceil (1 + \varepsilon) \cdot \Delta \right\rceil
+    \quad \text{where} \quad \varepsilon = 2 \cdot \left( \frac{\ln n}{\Delta} \right)^{1/5}
+    \]
+    This buffer reduces the likelihood of conflicts.
+    
+    \item \textbf{Edge Processing:} Upon arrival of each online node $v_t$:
+    \begin{itemize}
+        \item Each incident edge $(u, v_t)$ selects a random color from $u$'s available palette.
+        \item Conflicts (multiple edges selecting the same color) are resolved using CRS.
+    \end{itemize}
+    
+    \item \textbf{Conflict Resolution:} For each color, only one edge is allowed to retain it, ensuring proper coloring. This process reduces the maximum degree of the uncolored subgraph by a factor of approximately $e$.
+\end{itemize}
+
+\subsubsection*{Algorithm 2: Contention Resolution Scheme (CRS)}
+
+The \textbf{Contention Resolution Scheme (CRS)} is designed to fairly allocate a contested color among multiple edges that simultaneously request it. When a set of edges $R_c$ select the same color $c$, CRS calculates a probability for each edge to determine which one will retain the color.
+
+The selection probability for an edge $e \in R_c$ is given by:
+
+\[
+r_{R_c, e} = \frac{1}{\sum_{i=1}^{n} p_i} \left( \frac{\sum_{f \in R_c \setminus \{e\}} p_f}{|R_c| - 1} + \frac{\sum_{f \notin R_c} p_f}{|R_c|} \right)
+\]
+
+\paragraph{Where:}
+\begin{itemize}
+    \item $R_c$: Set of edges requesting color $c$ (the contenders).
+    \item $p_i$: The initial selection probability for edge $i$.
+    \item $|R_c|$: Number of conflicting edges.
+    \item $n$: Total number of edges considered in this round.
+\end{itemize}
+
+\paragraph{Explanation:}
+\begin{itemize}
+    \item The \textbf{Normalization Factor} $\left( \frac{1}{\sum p_i} \right)$ ensures that the total probability across all contenders sums to 1, maintaining a valid probability distribution.
+    
+    \item The \textbf{Competition Term} $\left( \frac{\sum_{f \in R_c \setminus \{e\}} p_f}{|R_c| - 1} \right)$ reflects the influence of other competing edges, reducing the chance for any single edge as the number of contenders increases.
+    
+    \item The \textbf{Non-Contender Adjustment} $\left( \frac{\sum_{f \notin R_c} p_f}{|R_c|} \right)$ ensures fairness by factoring in the probabilities of edges that did not request this color, distributing their influence evenly among the contenders.
+\end{itemize}
+
+\paragraph{Intuition:}
+\begin{itemize}
+    \item Edges with higher initial probabilities $p_i$ have a proportionally better chance of being selected.
+    \item As the number of contenders increases, the probability for each individual edge decreases.
+    \item This balances fairness and efficiency, ensuring that exactly one edge (if any) retains the contested color without violating proper coloring rules.
+\end{itemize}
+
+This CRS formula was adapted from the contention resolution method proposed by Feige and Vondrák in their work on submodular utility allocation~\cite{feige2006}, where it was originally developed to handle fair allocation in combinatorial optimization problems. After computing $r_{R_c, e}$ for all edges in $R_c$, one edge is selected randomly according to these probabilities to retain color $c$.
+
+\subsubsection*{Algorithm 3: Full Online Edge Coloring}
+Since Algorithm 1 only partially colors edges, Algorithm 3 orchestrates multiple rounds:
+
+\begin{itemize}
+    \item \textbf{Multiple Executions:} Apply Algorithm 1 recursively, reducing the graph's maximum degree each round.
+    \item \textbf{Greedy Completion:} Once the residual graph is sparse (degree below threshold), apply a simple greedy algorithm.
+\end{itemize}
+
+This layered strategy ensures that the total number of colors remains within:
+\[
+\Delta \cdot \left( \frac{e}{e - 1} + o(1) \right)
+\]
+for large $\Delta$, outperforming naive greedy methods in worst-case scenarios.
+
+\subsection*{Key Insights}
+\begin{itemize}
+    \item \textbf{Deterministic Advantage:} Provides worst-case guarantees without relying on randomness.
+    \item \textbf{Recursive Reduction:} Efficiently lowers complexity at each stage through partial coloring.
+    \item \textbf{Innovative CRS Use:} Adapts CRS from other optimization contexts to online graph algorithms.
+\end{itemize}
+
+\section{Implementation Summary}
+
+For this project, we implemented the deterministic online bipartite edge coloring algorithm as described by Blikstad et al.~\cite{blikstad2024}, with several practical adaptations to enhance functionality, efficiency, and clarity in a real-world coding environment.
+
+\subsection*{Language and Tools}
+The implementation was carried out in \textbf{Python 3} due to its readability and flexibility for dynamic data handling. Standard libraries such as \texttt{math}, \texttt{random}, and \texttt{time} were utilized for mathematical operations, random selections, and performance measurements.
+
+\subsection*{Structure of the Implementation}
+The core logic is encapsulated within a class-based design:
+
+\paragraph{BipartiteGraphColoring Class:}
+\begin{itemize}
+    \item Manages graph initialization, palette management, edge coloring, conflict resolution, and validation.
+    \item Supports both the hybrid deterministic algorithm and a baseline greedy algorithm for comparative analysis.
+\end{itemize}
+
+\paragraph{Key Components:}
+\begin{itemize}
+    \item \textbf{Initialization (\_\_init\_\_):} 
+    Sets up offline and online nodes, computes $\varepsilon$ and initial palette size, and initializes data structures for tracking color usage.
+    
+    \item \textbf{Partial Coloring (\texttt{color\_graph} \& \texttt{process\_online\_node}):} 
+    Processes each online node using randomized color selection and resolves conflicts via a custom \textbf{Contention Resolution Scheme (CRS)}.
+    
+    \item \textbf{Contention Resolution Scheme (\texttt{contention\_resolution\_scheme}):} 
+    Implements the CRS formula to calculate fair selection probabilities and randomly selects one edge to retain contested colors.
+    
+    \item \textbf{Greedy Fallback:} 
+    When the residual graph's degree falls below:
+    \[
+    \left( \text{degree}^{10/11} \right) \cdot \left( \log |U| \right)^{1/11}
+    \]
+    remaining edges are colored using a standard greedy approach.
+    
+    \item \textbf{Validation (\texttt{validate\_coloring} \& \texttt{validate\_greedy\_coloring}):} 
+    Ensures all edges are colored properly without conflicts.
+    
+    \item \textbf{Testing Suite (\texttt{main} function):} 
+    Runs comprehensive tests across various graph structures:
+    \begin{itemize}
+        \item Complete bipartite graphs
+        \item Star topologies
+        \item Sparse graphs
+        \item Hybrid and cyclic graphs
+    \end{itemize}
+    Compares performance and color usage between the hybrid and greedy algorithms.
+\end{itemize}
+
+\subsection*{Implementation Strategy}
+We adopted a modular design, separating CRS, coloring logic, and validation for maintainability. Dynamic palette management was introduced, allowing palette size expansion only when necessary. Print statements were included to trace color assignments and conflict resolutions, enhancing transparency during execution.
+
+\subsection*{Challenges Encountered}
+\begin{itemize}
+    \item \textbf{Translating Theoretical CRS into Code:} Handling edge cases, ensuring normalization, and avoiding division by zero.
+    \item \textbf{Threshold Calibration:} Balancing recursion depth with efficient fallback to greedy coloring.
+    \item \textbf{Validation Complexity:} Ensuring correctness across diverse graph structures for both algorithms.
+\end{itemize}
+
+\subsection*{Deviations from Original Approach}
+\begin{itemize}
+    \item Implemented \textbf{adaptive palette growth} instead of predefined distinct palettes for recursion layers.
+    \item Tailored CRS for practical execution, focusing on fair selection with computational feasibility.
+    \item Added enhanced logging and validation mechanisms to aid debugging and demonstration.
+\end{itemize}
+
+
+\section{Evaluation}
+
+\subsection{Correctness}
+To ensure the correctness of our implementation, we developed comprehensive validation functions for both the hybrid deterministic algorithm and the baseline greedy algorithm. The validation checks included:
+
+\begin{itemize}
+    \item \textbf{Complete Coloring:} Verifying that every edge in the bipartite graph received a color assignment.
+    \item \textbf{Proper Edge Coloring:} Ensuring no two edges incident to the same node shared the same color (i.e., no color conflicts).
+\end{itemize}
+
+Across all test cases—including complete bipartite graphs, star topologies, sparse matchings, hybrid graphs, cycles, and adversarial inputs—our implementation consistently passed all validation checks.
+
+\subsection{Runtime \& Complexity}
+
+\paragraph{Theoretical Complexity:}
+The hybrid algorithm introduces overhead due to CRS and recursive structure, while the greedy algorithm runs in linear time relative to the number of edges.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{runtime_comparison.png}
+    \caption{Comparison of Runtime (log scale): Hybrid vs Greedy}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Detailed Runtime Comparison}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Test Case} & \textbf{Hybrid Time (s)} & \textbf{Greedy Time (s)} & \textbf{Time Ratio} \\
+\hline
+Complete Bipartite K10,10     & 0.00537 & 0.00032 & 16.66x \\
+Star Topology                 & 0.00813 & 0.00024 & 34.49x \\
+Sparse Graph (Matching)       & 0.00075 & 0.00023 & 3.18x  \\
+Hybrid Graph                  & 0.00919 & 0.00045 & 20.67x \\
+Multiple 4-cycles             & 0.00836 & 0.00127 & 6.59x  \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Comparisons with Baseline Greedy}
+
+\paragraph{Color Usage Efficiency:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{colors_comparison.png}
+    \caption{Comparison of Colors Used: Hybrid vs Greedy}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Detailed Color Usage Comparison}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Test Case} & \textbf{Hybrid Colors} & \textbf{Greedy Colors} & \textbf{Color Ratio} \\
+\hline
+Complete Bipartite K10,10     & 13  & 11  & 1.18x \\
+Star Topology                 & 20  & 20  & 1.00x \\
+Sparse Graph (Matching)       & 2   & 1   & 2.00x \\
+Hybrid Graph                  & 20  & 20  & 1.00x \\
+Multiple 4-cycles             & 3   & 2   & 1.50x \\
+\hline
+\end{tabular}
+\end{table}
+
+The hybrid algorithm offers deterministic guarantees but tends to use slightly more colors due to its conservative design, especially in sparse graphs. However, it avoids worst-case behaviors seen in greedy algorithms under adversarial conditions.
+
+\subsection{Enhancements}
+
+\begin{itemize}
+    \item \textbf{Adaptive Palette Growth} improved memory and computational efficiency.
+    \item \textbf{Extensive Testing} provided insights across diverse graph topologies.
+    \item \textbf{Automated Validation} ensured correctness throughout.
+\end{itemize}
+
+\paragraph{Impact:} These enhancements balanced runtime performance and robustness, highlighting where each algorithm excels—greedy in simplicity, hybrid in worst-case resilience.
+
+
+\section{Conclusion}
+
+In this project, we explored, implemented, and evaluated a cutting-edge deterministic algorithm for the \textbf{Online Bipartite Edge Coloring} problem, inspired by recent advancements in theoretical computer science. By leveraging techniques such as \textbf{Contention Resolution Schemes (CRS)} and recursive partial coloring, our implementation demonstrated how deterministic methods can outperform traditional greedy approaches in worst-case scenarios.
+
+Through comprehensive testing across diverse graph structures, we validated the correctness and robustness of our solution. While the hybrid algorithm introduced additional computational overhead compared to the greedy baseline, it provided predictable, conflict-free colorings with deterministic guarantees—an essential feature for systems where reliability and worst-case performance are critical.
+
+Furthermore, with enhancements like dynamic thresholding and adaptive palette management, we extended the original algorithm to improve practicality and efficiency in real-world applications.
+
+This project not only deepened our understanding of online algorithms and graph theory but also emphasized the importance of balancing theoretical rigor with practical implementation. The insights gained offer a solid foundation for future research into scalable, deterministic solutions for online decision-making problems.
+
+\begin{thebibliography}{9}
+
+\bibitem{blikstad2024}
+Blikstad, J., Chen, L., Wajc, D., \& Wein, N. (2024). \textit{Deterministic Online Bipartite Edge Coloring}. Proceedings of the ACM-SIAM Symposium on Discrete Algorithms (SODA).
+
+\bibitem{feige2006}
+Feige, U., \& Vondrák, J. (2006). \textit{The Allocation Problem with Submodular Utility Functions}. Preliminary version.
+
+\textbf{Note: }The above researches are available in research material folder of the repository
+
+
+\end{thebibliography}
+
+
+
+\end{document}

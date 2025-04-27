@@ -1,0 +1,20 @@
+**Note: These files contains algorithm as it is copied from the research papers with slide changes**
+
+Algorithm 2: Contention Resolution Scheme
+
+Input:
+- Rc: conflicting edges
+- −→xc: Probability of conflicting edges to select that color
+
+    a. For each e ∈ Rc: // for each conflicting edge
+        '''
+        this formula gives us the fair chance (probability) that a specific edge i should receive a contested item, 
+        given that multiple players requested it — while respecting the original probability weights p.
+        '''
+        i. r_Rc_e = (1 / ∑(−→xc)) * [ 
+                            ∑_{f ∈ Rc \ {e}} −→xc[f] / (|Rc| - 1) +    
+                            ∑_{f ∉ Rc} −→xc[f] / |Rc| 
+                      ].
+    b. Randomly select an edge e ∈ Rc with probability r_Rc_e.
+    c. Return e as the selected edge.
+

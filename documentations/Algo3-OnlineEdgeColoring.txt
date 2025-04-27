@@ -1,0 +1,16 @@
+**Note: These files contains algorithm as it is copied from the research papers with slide changes**
+
+Algorithm 3: Online Edge Coloring
+
+Input:
+- G: Input graph arriving online.
+- Δ: Maximum degree of G.
+
+Steps:
+1. Launch executions 0, . . . , f − 1 of Algorithm 1 with parameters Δ0, . . . , Δf−1 and distinct palettes.
+2. For each online node vt on arrival:
+    a. Et ← edges incident to vt.
+    b. For i = 1, . . . , f:
+        i. Provide online arrival of vt with edges Et to execution i of Algorithm 1.
+        ii. Et ← Et \ {edges colored by the above execution}.
+    c. Color remaining set Et greedily using a fixed palette which is distinct from copies of Algorithm 1.

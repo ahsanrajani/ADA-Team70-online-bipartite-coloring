@@ -1,0 +1,26 @@
+**Note: These files contains algorithm as it is copied from the research papers with slide changes**
+
+
+Algorithm 1: Partial Edge Coloring
+
+Input:
+- Δ ∈ ℤ: Known maximum degree of the graph, determines how many colors are needed.
+
+Steps:
+1. Initialization:
+    a. Set ε = 2 · (ln n / Δ)^(1/5) // Defines parameter ε to determine ideal palette size.
+    b. For each offline node u:
+        i. Create palette P(u) ← C := ⌈(1 + √ε)Δ⌉ // Assigning each offline node the same palette of size (1 + √ε)Δ.
+2. Processing each online node vt on arrival:
+    a. For each color c ∈ C and node u ∈ N(vt): 
+        i. Set x(t)_uc ← 1[c ∈ P(u)] / |P(u)| // Calculate selection probability.
+    b. For each edge e = (u, vt): 
+        i. Pick color c(e) ∈ P(u) uniformly at random // Randomly selects a color from the palette.
+        ii. Remove c(e) from P(u) // Selected color is removed from palettes.
+    c. For each color c ∈ C:
+        i. Rc ← {e = (u, vt) | c(e) = c} // Gather all edges that requested that color.
+        ii. Set −→xc to be the vector (x(t)_uc)u∈N(vt) // Forming probability vector of x(t)_uc values.
+        iii. Set Sc ← CRS(Rc, −→xc) // Sending conflicting edges and probabilities to CRS for resolution.
+        iv. If Sc ≠ ∅:
+             - Assign edge ec ∈ Sc the color c // Assign that color to the edge.
+
