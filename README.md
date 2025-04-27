@@ -68,7 +68,7 @@ For each test:
 2. Save the script to a `.py` file.
 3. Run the script:
     ```bash
-    python your_script_name.py
+    python implementation.py
     ```
 4. Check `output.txt` for results.
 
