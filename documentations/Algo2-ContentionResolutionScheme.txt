@@ -9,7 +9,8 @@ Input:
     a. For each e ∈ Rc: // for each conflicting edge
         '''
         this formula gives us the fair chance (probability) that a specific edge i should receive a contested item, 
-        given that multiple players requested it — while respecting the original probability weights p.
+        given that multiple players requested it — while respecting the original probability weights p. For detailed
+        explanation of this formula, refer to crs_explained.pdf document in <Research Material> folder
         '''
         i. r_Rc_e = (1 / ∑(−→xc)) * [ 
                             ∑_{f ∈ Rc \ {e}} −→xc[f] / (|Rc| - 1) +    
