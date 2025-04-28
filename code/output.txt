@@ -1,35 +1,39 @@
+===== Bipartite Graph Coloring =====
+
 ===== Test 1: Complete Bipartite K10,10 =====
-Hybrid algorithm: Colors used: 13, Valid: True, Time: 0.005367 seconds
-Greedy algorithm: Colors used: 11, Valid: True, Time: 0.000322 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 1.18x, Time: 16.66x
+Hybrid algorithm: Colors used: 12, Valid: True, Time: 0.003613 seconds
+Greedy algorithm: Colors used: 11, Valid: True, Time: 0.000134 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.09x, Time: 27.01x
 
 ===== Test 2: Complete Bipartite K100,100 (Partial Demo) =====
-(Skipped for practical execution, uncomment to test)
+Hybrid algorithm: Colors used: 123, Valid: True, Time: 15.061245 seconds
+Greedy algorithm: Colors used: 107, Valid: True, Time: 0.046677 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.15x, Time: 322.67x
 
 ===== Test 3: Star Topology =====
-Hybrid algorithm: Colors used: 20, Valid: True, Time: 0.008125 seconds
-Greedy algorithm: Colors used: 20, Valid: True, Time: 0.000236 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 1.00x, Time: 34.49x
+Hybrid algorithm: Colors used: 20, Valid: True, Time: 0.001578 seconds
+Greedy algorithm: Colors used: 20, Valid: True, Time: 0.000057 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.00x, Time: 27.93x
 
 ===== Test 4: Sparse Graph (Perfect Matching) =====
-Hybrid algorithm: Colors used: 2, Valid: True, Time: 0.000745 seconds
-Greedy algorithm: Colors used: 1, Valid: True, Time: 0.000234 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 2.00x, Time: 3.18x
+Hybrid algorithm: Colors used: 2, Valid: True, Time: 0.000243 seconds
+Greedy algorithm: Colors used: 1, Valid: True, Time: 0.000055 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 2.00x, Time: 4.45x
 
 ===== Test 5: Hybrid Graph =====
-Hybrid algorithm: Colors used: 20, Valid: True, Time: 0.009191 seconds
-Greedy algorithm: Colors used: 20, Valid: True, Time: 0.000445 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 1.00x, Time: 20.67x
+Hybrid algorithm: Colors used: 20, Valid: True, Time: 0.002006 seconds
+Greedy algorithm: Colors used: 20, Valid: True, Time: 0.000063 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.00x, Time: 31.88x
 
 ===== Test 6: Multiple 4-cycles =====
-Hybrid algorithm: Colors used: 3, Valid: True, Time: 0.008357 seconds
-Greedy algorithm: Colors used: 2, Valid: True, Time: 0.001267 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 1.50x, Time: 6.59x
+Hybrid algorithm: Colors used: 3, Valid: True, Time: 0.001240 seconds
+Greedy algorithm: Colors used: 2, Valid: True, Time: 0.000201 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.50x, Time: 6.17x
 
-===== Test 7: Adversarial Input (Greedy Uses 2Δ Colors) =====
-Hybrid algorithm: Colors used: 33, Valid: True, Time: 0.027041 seconds
-Greedy algorithm: Colors used: 30, Valid: True, Time: 0.000462 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 1.10x, Time: 58.55x
-Hybrid algorithm: Colors used: 6, Valid: True, Time: 0.001214 seconds
-Greedy algorithm: Colors used: 5, Valid: True, Time: 0.000123 seconds
-Comparison: Hybrid/Greedy ratio - Colors: 1.20x, Time: 9.85x
+===== Test 7: Adversarial Input (Greedy Uses 2 delta Colors) =====
+Hybrid algorithm: Colors used: 33, Valid: True, Time: 0.009680 seconds
+Greedy algorithm: Colors used: 30, Valid: True, Time: 0.000135 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.10x, Time: 71.86x
+Hybrid algorithm: Colors used: 6, Valid: True, Time: 0.000131 seconds
+Greedy algorithm: Colors used: 5, Valid: True, Time: 0.000025 seconds
+Comparison: Hybrid/Greedy ratio - Colors: 1.20x, Time: 5.33x
