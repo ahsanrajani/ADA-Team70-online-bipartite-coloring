@@ -118,6 +118,7 @@ class BipartiteGraphColoring:
                     self.used_colors_per_node[selected_edge[0]].add(color)
                     self.used_colors_per_node[selected_edge[1]].add(color)
                     self.edge_colors[selected_edge] = color
+                    print(f"Edge {selected_edge} colored with {color}")
                     
                     colored_edges.append(selected_edge)
             
@@ -187,6 +188,7 @@ class BipartiteGraphColoring:
             greedy_edge_colors[edge] = color
             greedy_used_colors[offline_node].add(color)
             greedy_used_colors[online_node].add(color)
+            print(f"Greedy edge {edge} colored with {color}")
         
         unique_colors = set(greedy_edge_colors.values())
         
